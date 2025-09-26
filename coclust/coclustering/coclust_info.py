@@ -272,3 +272,5 @@ class CoclustInfo(BaseNonDiagonalCoclust):
         self.delta_kl_ = delta_kl
         self.Z = Z
         self.W = W
+        self.W1 = W1
+        self.Z1 = Z1

@@ -7,14 +7,14 @@ different measures or data.
 
 import logging
 
-import matplotlib.pyplot as plt
 import matplotlib.patheffects as PathEffects
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import MaxNLocator
 from sklearn.preprocessing import normalize
 
-
 logger = logging.getLogger(__name__)
-plt.style.use('ggplot')
+plt.style.use("ggplot")
 
 
 def plot_max_modularities(max_modularities, range_n_clusters, do_plot=True):
@@ -28,7 +28,8 @@ def plot_max_modularities(max_modularities, range_n_clusters, do_plot=True):
     range_n_clusters: list
         Number of clusters for which the algorithm is to be executed
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
 
     Example
     -------
@@ -57,34 +58,27 @@ def plot_max_modularities(max_modularities, range_n_clusters, do_plot=True):
     # Prepare a subplot and set the axis tick values and labels
     fig, ax = plt.subplots()
     fig.canvas.draw()
-    labels = np.arange(1, (len(max_modularities)), 1)
-    plt.xticks(np.arange(0, len(max_modularities) + 1, 1))
-    labels = range_n_clusters
-    ax.set_xticklabels(labels)
 
     # Plot all max modularities
-    plt.plot(max_modularities, marker='o')
+    plt.plot(range_n_clusters, max_modularities, marker="o")
 
     # Set the axis titles
     plt.ylabel("Final Modularity", size=10)
     plt.xlabel("Number of clusters", size=10)
 
-    # Set the axis limits
-    plt.xlim(-0.5, (len(max_modularities) - 0.5))
-    plt.ylim((min(max_modularities) - 0.05 * min(max_modularities)),
-             (max(max_modularities) + 0.05 * max(max_modularities)))
-
-    # Set the main plot titlee
-    plt.title("\nMax. modularity for %d clusters (%.4f)\n" %
-              (range_n_clusters[max_modularities.index(max(max_modularities))],
-               max(max_modularities)), size=12)
+    # Set the main plot title
+    plt.title(
+        "\nMax. modularity for %d clusters (%.4f)\n"
+        % (range_n_clusters[max_modularities.index(max(max_modularities))], max(max_modularities)),
+        size=12,
+    )
 
     # Remove automatic ticks
-    plt.tick_params(axis='both', which='both', bottom='off', top='off',
-                    right='off', left='off')
+    plt.tick_params(axis="both", which="both", bottom="off", top="off", right="off", left="off")
 
     # Plot a dashed vertical line at best partition
-    plt.axvline(np.argmax(max_modularities), linestyle="dashed")
+    plt.axvline(np.array(range_n_clusters)[np.argmax(max_modularities)], linestyle="dashed")
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
     if do_plot:
         plt.show()
@@ -98,7 +92,8 @@ def plot_intermediate_modularities(model, do_plot=True):
     model: :class:`coclust.coclustering.CoclustMod`
         Fitted model
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
 
     Example
     -------
@@ -123,7 +118,7 @@ def plot_intermediate_modularities(model, do_plot=True):
     ax.set_xticklabels(labels)
 
     # Plot all intermdiate modularities
-    plt.plot(model.modularities, marker='o')
+    plt.plot(model.modularities, marker="o")
 
     # Set the axis titles
     plt.ylabel("Modularities", size=10)
@@ -131,16 +126,15 @@ def plot_intermediate_modularities(model, do_plot=True):
 
     # Set the axis limits
     plt.xlim(-0.5, (len(model.modularities) - 0.5))
-    plt.ylim((min(model.modularities) - 0.05 * min(model.modularities)),
-             (max(model.modularities) + 0.05 * max(model.modularities)))
+    plt.ylim(
+        (min(model.modularities) - 0.05 * min(model.modularities)), (max(model.modularities) + 0.05 * max(model.modularities))
+    )
 
-    # Set the main plot titlee
-    plt.title("\nIntermediate modularities for %d clusters\n"
-              % (model.n_clusters), size=12)
+    # Set the main plot title
+    plt.title("\nIntermediate modularities for %d clusters\n" % (model.n_clusters), size=12)
 
     # Remove automatic ticks
-    plt.tick_params(axis='both', which='both', bottom='off', top='off',
-                    right='off', left='off')
+    plt.tick_params(axis="both", which="both", bottom="off", top="off", right="off", left="off")
 
     # Plot a dashed horizontal line around max modularity
     plt.axhline(max(model.modularities), linestyle="dashed")
@@ -162,7 +156,8 @@ def plot_cluster_top_terms(in_data, all_terms, nb_top_terms, model, do_plot=True
     model: :class:`coclust.coclustering.BaseDiagonalCoclust`
         a co-clustering model
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
 
 
     Example
@@ -194,9 +189,11 @@ def plot_cluster_top_terms(in_data, all_terms, nb_top_terms, model, do_plot=True
     """
 
     if all_terms is None:
-        logger.warning("Term labels cannot be found. Use input argument "
-                       "'term_labels_filepath' in function "
-                       "'load_doc_term_data' if term labels are available.")
+        logger.warning(
+            "Term labels cannot be found. Use input argument "
+            "'term_labels_filepath' in function "
+            "'load_doc_term_data' if term labels are available."
+        )
         return
 
     x_label = "number of occurences"
@@ -211,26 +208,25 @@ def plot_cluster_top_terms(in_data, all_terms, nb_top_terms, model, do_plot=True
         # Get the submatrix corresponding to the given cluster
         cluster = model.get_submatrix(in_data, v)
         # Count the number of each term
-        p = cluster.sum(0)
+        p = np.matrix(cluster.sum(0))
         t = p.getA().flatten()
         # Obtain all term names for the given cluster
         tmp_terms = np.array(all_terms)[col_indices]
         # Get the first n terms
         max_indices = t.argsort()[::-1][:nb_top_terms]
 
-        pos = np.arange(nb_top_terms)
+        pos = np.arange(len(max_indices))
 
         v = v + 1
         ax1 = plt.subplot(number_of_subplots, 1, v)
         ax1.barh(pos, t[max_indices][::-1])
         ax1.set_title("Cluster %d (%d terms)" % (v, len(col_indices)), size=11)
 
-        plt.yticks(.4 + pos, tmp_terms[max_indices][::-1], size=9.5)
+        plt.yticks(0.4 + pos, tmp_terms[max_indices][::-1], size=9.5)
         plt.xlabel(x_label, size=9)
         plt.margins(y=0.05)
         # _remove_ticks()
-        plt.tick_params(axis='both', which='both', bottom='on', top='off',
-                        right='off', left='off')
+        plt.tick_params(axis="both", which="both", bottom="on", top="off", right="off", left="off")
 
     # Tight layout often produces nice results
     # but requires the title to be spaced accordingly
@@ -241,8 +237,7 @@ def plot_cluster_top_terms(in_data, all_terms, nb_top_terms, model, do_plot=True
         plt.show()
 
 
-def get_term_graph(X, model, terms, n_cluster, n_top_terms=10, n_neighbors=2,
-                   stopwords=[]):
+def get_term_graph(X, model, terms, n_cluster, n_top_terms=10, n_neighbors=2, stopwords=[]):
     """Get a graph of terms.
 
     Parameters
@@ -268,9 +263,11 @@ def get_term_graph(X, model, terms, n_cluster, n_top_terms=10, n_neighbors=2,
     graph = {"nodes": [], "links": []}
 
     if terms is None:
-        logger.warning("Term labels cannot be found. Use input argument "
-                       "'term_labels_filepath' in function "
-                       "'load_doc_term_data' if term labels are available.")
+        logger.warning(
+            "Term labels cannot be found. Use input argument "
+            "'term_labels_filepath' in function "
+            "'load_doc_term_data' if term labels are available."
+        )
         return graph
 
     # get submatrix and local kist of terms
@@ -279,12 +276,12 @@ def get_term_graph(X, model, terms, n_cluster, n_top_terms=10, n_neighbors=2,
     terms = np.array(terms)[col_indices]
 
     # identify most frequent words
-    p = cluster.sum(0)
+    p = np.matrix(cluster.sum(0))
     t = p.getA().flatten()
     top_term_indices = t.argsort()[::-1][:n_top_terms]
 
     # create tt sim matrix
-    cluster_norm = normalize(cluster, norm='l2', axis=0, copy=True)
+    cluster_norm = normalize(cluster, norm="l2", axis=0, copy=True)
     sim = cluster_norm.T * cluster_norm
 
     # to be able to compute the final index of a neighbor which is also a
@@ -302,8 +299,7 @@ def get_term_graph(X, model, terms, n_cluster, n_top_terms=10, n_neighbors=2,
             if len(stopwords) > 0:
                 if terms[n] in stopwords:
                     continue
-            if (terms[n].endswith("ed") or terms[n].endswith("ing") or
-                    terms[n].endswith("ly")):
+            if terms[n].endswith("ed") or terms[n].endswith("ing") or terms[n].endswith("ly"):
                 continue
 
             # if  terms[dico_tt[n]].lower() in stopwords: continue
@@ -326,9 +322,7 @@ def get_term_graph(X, model, terms, n_cluster, n_top_terms=10, n_neighbors=2,
             else:
                 # n is a pure neighbor. Compute its d3 index by an addition
                 # use indices suitable for d3 links
-                links.append(((idx_tt, t),
-                              (len(top_term_indices) + len(all_neighbors) - 1,
-                               n)))
+                links.append(((idx_tt, t), (len(top_term_indices) + len(all_neighbors) - 1, n)))
 
     for top_term in top_term_indices:
         graph["nodes"].append({"name": terms[top_term], "group": 0})
@@ -337,9 +331,7 @@ def get_term_graph(X, model, terms, n_cluster, n_top_terms=10, n_neighbors=2,
         graph["nodes"].append({"name": terms[neighbor], "group": 1})
 
     for a, b in links:
-        graph["links"].append({"source": a[0],
-                               "target": b[0],
-                               "value": sim[a[1], b[1]]})
+        graph["links"].append({"source": a[0], "target": b[0], "value": sim[a[1], b[1]]})
     return graph
 
 
@@ -351,7 +343,8 @@ def plot_cluster_sizes(model, do_plot=True):
     model: :class:`coclust.coclustering.BaseDiagonalCoclust`
         a co-clustering model
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
 
     Example
     -------
@@ -371,8 +364,8 @@ def plot_cluster_sizes(model, do_plot=True):
 
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111)
-    prop_list = list(plt.rcParams['axes.prop_cycle'])
-    colors = [prop_list[0]['color'], prop_list[1]['color']]
+    prop_list = list(plt.rcParams["axes.prop_cycle"])
+    colors = [prop_list[0]["color"], prop_list[1]["color"]]
     x = []
     y = []
     for i in range(model.n_clusters):
@@ -380,34 +373,30 @@ def plot_cluster_sizes(model, do_plot=True):
         x.append(number_of_rows)
         y.append(number_of_columns)
     data = [x, y]
-    shift = .8 / len(data * 2)
+    shift = 0.8 / len(data * 2)
     location = np.arange(model.n_clusters)
     legend_rects = []
     for i in range(2):
-        cols = ax.bar(location + i * shift, data[i], width=shift,
-                      color=colors[i % len(colors)], align='center')
+        cols = ax.bar(location + i * shift, data[i], width=shift, color=colors[i % len(colors)], align="center")
         legend_rects.append(cols[0])
         for c in cols:
             h = c.get_height()
-            ax.text(c.get_x() + c.get_width() / 2., h + 5, '%d' % int(h),
-                    ha='center', va='bottom')
-    ax.set_xticks(location + (shift / 2.))
-    ax.set_xticklabels(['coclust-' + str(i) for i in range(model.n_clusters)])
-    plt.xlabel('Co-clusters')
-    plt.ylabel('Sizes')
+            ax.text(c.get_x() + c.get_width() / 2.0, h + 5, "%d" % int(h), ha="center", va="bottom")
+    ax.set_xticks(location + (shift / 2.0))
+    ax.set_xticklabels(["coclust-" + str(i) for i in range(model.n_clusters)])
+    plt.xlabel("Co-clusters")
+    plt.ylabel("Sizes")
     plt.tight_layout()
-    ax.legend(legend_rects, ('Rows', 'Columns'))
+    ax.legend(legend_rects, ("Rows", "Columns"))
 
     # _remove_ticks()
-    plt.tick_params(axis='both', which='both', bottom='on', top='off',
-                    right='off', left='off')
+    plt.tick_params(axis="both", which="both", bottom="on", top="off", right="off", left="off")
     if do_plot:
         plt.show()
 
 
 def _remove_ticks():
-    plt.tick_params(axis='both', which='both', bottom='off', top='off',
-                    right='off', left='off')
+    plt.tick_params(axis="both", which="both", bottom="off", top="off", right="off", left="off")
 
 
 def plot_reorganized_matrix(X, model, precision=0.8, markersize=0.9, do_plot=True):
@@ -424,7 +413,8 @@ def plot_reorganized_matrix(X, model, precision=0.8, markersize=0.9, do_plot=Tru
     markersize: float
         marker size
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
     Example
     -------
     >>> plot_reorganized_matrix(X, model)
@@ -445,14 +435,14 @@ def plot_reorganized_matrix(X, model, precision=0.8, markersize=0.9, do_plot=Tru
     col_indices = np.argsort(model.column_labels_)
     X_reorg = X[row_indices, :]
     X_reorg = X_reorg[:, col_indices]
-    plt.spy(X_reorg, precision=precision, markersize=markersize)
+    plt.spy(X_reorg, precision=precision, markersize=markersize, aspect="auto")
     _remove_ticks()
     if do_plot:
         plt.show()
 
 
-def plot_convergence(criteria, criterion_name, marker='o', do_plot=True):
-    """ Plot the convergence of a given criteria.
+def plot_convergence(criteria, criterion_name, marker="o", do_plot=True):
+    """Plot the convergence of a given criteria.
 
     Parameters
     ----------
@@ -463,7 +453,8 @@ def plot_convergence(criteria, criterion_name, marker='o', do_plot=True):
     marker:
         Marker
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
 
     Example
     -------
@@ -482,13 +473,13 @@ def plot_convergence(criteria, criterion_name, marker='o', do_plot=True):
     """
     plt.plot(criteria, marker=marker)
     plt.ylabel(criterion_name)
-    plt.xlabel('Iterations')
+    plt.xlabel("Iterations")
     _remove_ticks()
     if do_plot:
         plt.show()
 
 
-def plot_confusion_matrix(cm, colormap=plt.get_cmap(), labels='012', do_plot=True):
+def plot_confusion_matrix(cm, colormap=plt.get_cmap(), labels="012", do_plot=True):
     """Plot a confusion matrix.
 
     Parameters
@@ -500,7 +491,8 @@ def plot_confusion_matrix(cm, colormap=plt.get_cmap(), labels='012', do_plot=Tru
     labels:
         Labels
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
 
     Example
     -------
@@ -538,20 +530,19 @@ def plot_confusion_matrix(cm, colormap=plt.get_cmap(), labels='012', do_plot=Tru
     plt.clf()
     ax = fig.add_subplot(111)
     ax.set_aspect(1)
-    res = ax.imshow(np.array(norm_conf_arr), cmap=colormap,
-                    interpolation='nearest')
+    res = ax.imshow(np.array(norm_conf_arr), cmap=colormap, interpolation="nearest")
 
     width, height = conf_arr.shape
 
     for x in np.arange(width):
         for y in np.arange(height):
-            ax.annotate(str(conf_arr[x][y]),
-                        xy=(y, x),
-                        horizontalalignment='center',
-                        verticalalignment='center',
-                        path_effects=[PathEffects.withStroke(linewidth=3,
-                                                             foreground="w",
-                                                             alpha=0.7)])
+            ax.annotate(
+                str(conf_arr[x][y]),
+                xy=(y, x),
+                horizontalalignment="center",
+                verticalalignment="center",
+                path_effects=[PathEffects.withStroke(linewidth=3, foreground="w", alpha=0.7)],
+            )
 
     fig.colorbar(res)
     plt.xticks(range(width), labels[:width])
@@ -561,8 +552,7 @@ def plot_confusion_matrix(cm, colormap=plt.get_cmap(), labels='012', do_plot=Tru
         plt.show()
 
 
-def plot_delta_kl(model, colormap=plt.get_cmap(),
-                  labels='012', do_plot=True):
+def plot_delta_kl(model, colormap=plt.get_cmap(), labels=None, do_plot=True):
     """Plot the delta values of the Information-Theoretic Co-clustering.
 
     Parameters
@@ -574,7 +564,8 @@ def plot_delta_kl(model, colormap=plt.get_cmap(),
     labels:
         Labels
     do_plot: boolean
-        Whether the plot should be displayed. True by default. Disabling this allows users to handle displaying the plot themselves.
+        Whether the plot should be displayed. True by default.
+        Disabling this allows users to handle displaying the plot themselves.
 
     Example
     -------
@@ -599,8 +590,7 @@ def plot_delta_kl(model, colormap=plt.get_cmap(),
     plt.clf()
     ax = fig.add_subplot(111)
     ax.set_aspect(1)
-    res = ax.imshow(np.array(delta_arr), cmap=colormap,
-                    interpolation='nearest')
+    res = ax.imshow(np.array(delta_arr), cmap=colormap, interpolation="nearest")
 
     width, height = delta_arr.shape
 
@@ -608,18 +598,15 @@ def plot_delta_kl(model, colormap=plt.get_cmap(),
         for y in np.arange(height):
             nb_docs = len(model.get_row_indices(x))
             nb_terms = len(model.get_col_indices(y))
-            ax.annotate(str(delta_arr[x][y]) + "\n(%d,%d)" %
-                        (nb_docs, nb_terms),
-                        xy=(y, x),
-                        horizontalalignment='center',
-                        verticalalignment='center',
-                        path_effects=[PathEffects.withStroke(linewidth=3,
-                                                             foreground="w",
-                                                             alpha=0.7)])
+            ax.annotate(
+                str(delta_arr[x][y]) + "\n(%d,%d)" % (nb_docs, nb_terms),
+                xy=(y, x),
+                horizontalalignment="center",
+                verticalalignment="center",
+                path_effects=[PathEffects.withStroke(linewidth=3, foreground="w", alpha=0.7)],
+            )
 
     fig.colorbar(res)
-    plt.xticks(range(width), labels[:width])
-    plt.yticks(range(height), labels[:height])
 
     ax = plt.gca()
     ax.grid(False)
