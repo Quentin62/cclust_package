@@ -13,11 +13,12 @@ of a co-clustering algorithm by an information-theoretic approach.
 import numpy as np
 import scipy.sparse as sp
 from scipy.sparse.sputils import isdense
-from sklearn.utils import check_random_state, check_array
+from sklearn.utils import check_array, check_random_state
 
 from ..initialization import random_init
-from .base_non_diagonal_coclust import BaseNonDiagonalCoclust
 from ..io.input_checking import check_positive
+from .base_non_diagonal_coclust import BaseNonDiagonalCoclust
+
 
 class CoclustInfo(BaseNonDiagonalCoclust):
     """Information-Theoretic Co-clustering.
@@ -63,8 +64,7 @@ class CoclustInfo(BaseNonDiagonalCoclust):
         cluster k and column cluster l
     """
 
-    def __init__(self, n_row_clusters=2, n_col_clusters=2, init=None,
-                 max_iter=20, n_init=1, tol=1e-9, random_state=None):
+    def __init__(self, n_row_clusters=2, n_col_clusters=2, init=None, max_iter=20, n_init=1, tol=1e-9, random_state=None):
         self.n_row_clusters = n_row_clusters
         self.n_col_clusters = n_col_clusters
         self.init = init
@@ -89,10 +89,19 @@ class CoclustInfo(BaseNonDiagonalCoclust):
         """
         random_state = check_random_state(self.random_state)
 
-        check_array(X, accept_sparse=True, dtype="numeric", order=None,
-                    copy=False, force_all_finite=True, ensure_2d=True,
-                    allow_nd=False, ensure_min_samples=self.n_row_clusters,
-                    ensure_min_features=self.n_col_clusters, estimator=None)
+        check_array(
+            X,
+            accept_sparse=True,
+            dtype="numeric",
+            order=None,
+            copy=False,
+            force_all_finite=True,
+            ensure_2d=True,
+            allow_nd=False,
+            ensure_min_samples=self.n_row_clusters,
+            ensure_min_features=self.n_col_clusters,
+            estimator=None,
+        )
 
         check_positive(X)
 
@@ -108,10 +117,9 @@ class CoclustInfo(BaseNonDiagonalCoclust):
         for seed in seeds:
             self._fit_single(X, seed, y)
             if np.isnan(self.criterion):
-                raise ValueError("matrix may contain negative or "
-                                 "unexpected NaN values")
+                raise ValueError("matrix may contain negative or " "unexpected NaN values")
             # remember attributes corresponding to the best criterion
-            if (self.criterion > criterion):
+            if self.criterion > criterion:
                 criterion = self.criterion
                 criterions = self.criterions
                 row_labels_ = self.row_labels_
@@ -135,6 +143,8 @@ class CoclustInfo(BaseNonDiagonalCoclust):
         X : numpy array or scipy sparse matrix, shape=(n_samples, n_features)
             Matrix to be analyzed
         """
+        zero_deltak = 1e-6
+        zero_pkd = 1e-4
 
         K = self.n_row_clusters
         L = self.n_col_clusters
@@ -147,7 +157,7 @@ class CoclustInfo(BaseNonDiagonalCoclust):
         X = sp.csr_matrix(X)
 
         N = float(X.sum())
-        X = X.multiply(1. / N)
+        X = X.multiply(1.0 / N)
 
         Z = sp.lil_matrix(random_init(K, X.shape[0], self.random_state))
 
@@ -163,11 +173,9 @@ class CoclustInfo(BaseNonDiagonalCoclust):
 
         # p_k. p_.l ; transpose because p_kd is "horizontal"
         p_kd_times_p_dl = p_kd.T * p_dl
-        min_p_kd_times_p_dl = np.nanmin(
-            p_kd_times_p_dl[
-                np.nonzero(p_kd_times_p_dl)])
-        p_kd_times_p_dl[p_kd_times_p_dl == 0.] = min_p_kd_times_p_dl * 0.01
-        p_kd_times_p_dl_inv = 1. / p_kd_times_p_dl
+        min_p_kd_times_p_dl = np.nanmin(p_kd_times_p_dl[np.nonzero(p_kd_times_p_dl)])
+        p_kd_times_p_dl[p_kd_times_p_dl == 0.0] = min_p_kd_times_p_dl * zero_pkd
+        p_kd_times_p_dl_inv = 1.0 / p_kd_times_p_dl
 
         p_kl = (Z.T * X) * W
         delta_kl = p_kl.multiply(p_kd_times_p_dl_inv)
@@ -183,10 +191,10 @@ class CoclustInfo(BaseNonDiagonalCoclust):
             change = False
 
             # Update Z
-            p_il = X * W  # CSR matrix i,l 
+            p_il = X * W  # CSR matrix i,l
             if not isdense(delta_kl):
                 delta_kl = delta_kl.todense()
-            delta_kl[delta_kl == 0.] = 0.0001  # to prevent log(0)
+            delta_kl[delta_kl == 0.0] = zero_deltak  # to prevent log(0)
             log_delta_kl = np.log(delta_kl.T)
             log_delta_kl = sp.csr_matrix(log_delta_kl)
 
@@ -202,24 +210,22 @@ class CoclustInfo(BaseNonDiagonalCoclust):
             # Update delta
             # matrice d, k ; column k' contains the p_jk'
             p_kj = X.T * Z
-            # p_il unchanged so no need for p_dl = p_il.sum(axis=0) 
+            # p_il unchanged so no need for p_dl = p_il.sum(axis=0)
             p_kd = p_kj.sum(axis=0)  # array k containing the p_k.
 
             # p_k. p_.l ; transpose because p_kd is "horizontal"
             p_kd_times_p_dl = p_kd.T * p_dl
-            min_p_kd_times_p_dl = np.nanmin(
-                p_kd_times_p_dl[
-                    np.nonzero(p_kd_times_p_dl)])
-            p_kd_times_p_dl[p_kd_times_p_dl == 0.] = min_p_kd_times_p_dl * 0.01
-            p_kd_times_p_dl_inv = 1. / p_kd_times_p_dl
+            min_p_kd_times_p_dl = np.nanmin(p_kd_times_p_dl[np.nonzero(p_kd_times_p_dl)])
+            p_kd_times_p_dl[p_kd_times_p_dl == 0.0] = min_p_kd_times_p_dl * zero_pkd
+            p_kd_times_p_dl_inv = 1.0 / p_kd_times_p_dl
             p_kl = (Z.T * X) * W
             delta_kl = p_kl.multiply(p_kd_times_p_dl_inv)
 
             # Update W
             p_kj = X.T * Z  # CSR matrice j,k
-            if not isdense(delta_kl): # delta_kl should be a sparse coo here
+            if not isdense(delta_kl):  # delta_kl should be a sparse coo here
                 delta_kl = delta_kl.todense()
-            delta_kl[delta_kl == 0.] = 0.0001  # to prevent log(0)
+            delta_kl[delta_kl == 0.0] = zero_deltak  # to prevent log(0)
             log_delta_kl = np.log(delta_kl)
             log_delta_kl = sp.lil_matrix(log_delta_kl)
             W1 = p_kj * log_delta_kl  # p_kj * d_kl ; we examine each cluster
@@ -230,33 +236,30 @@ class CoclustInfo(BaseNonDiagonalCoclust):
             W = sp.csr_matrix(W)
 
             # Update delta
-            p_il = X * W     # matrix d,k ; column k' contains the p_jk'
-            # p_kj unchanged so no need for p_kd = p_kj.sum(axis=0) 
+            p_il = X * W  # matrix d,k ; column k' contains the p_jk'
+            # p_kj unchanged so no need for p_kd = p_kj.sum(axis=0)
             p_dl = p_il.sum(axis=0)  # array l containing the p_.l
-            
 
             # p_k. p_.l ; transpose because p_kd is "horizontal"
             p_kd_times_p_dl = p_kd.T * p_dl
-            min_p_kd_times_p_dl = np.nanmin(
-                p_kd_times_p_dl[
-                    np.nonzero(p_kd_times_p_dl)])
-            p_kd_times_p_dl[p_kd_times_p_dl == 0.] = min_p_kd_times_p_dl * 0.01
-            p_kd_times_p_dl_inv = 1. / p_kd_times_p_dl
+            min_p_kd_times_p_dl = np.nanmin(p_kd_times_p_dl[np.nonzero(p_kd_times_p_dl)])
+            p_kd_times_p_dl[p_kd_times_p_dl == 0.0] = min_p_kd_times_p_dl * zero_pkd
+            p_kd_times_p_dl_inv = 1.0 / p_kd_times_p_dl
             p_kl = (Z.T * X) * W
 
             delta_kl = p_kl.multiply(p_kd_times_p_dl_inv)
             # to prevent log(0) when computing criterion
-            # but note that delta_kl = csr eletwise-mult array is a coo
+            # but note that delta_kl = csr elementwise-mult array is a coo
             # which does not support item assignment
 
             if not isdense(delta_kl):
                 delta_kl = delta_kl.todense()
-            delta_kl[delta_kl == 0.] = 0.0001
+            delta_kl[delta_kl == 0.0] = self.tol
 
             # Criterion
             # p_kl is csr_matrix; delta_kl is np.matrix
             # just in case, note that their matmul results in a COO matrix !
-            pkl_mi = p_kl.multiply(np.log(delta_kl) )
+            pkl_mi = p_kl.multiply(np.log(delta_kl))
             pkl_mi = pkl_mi.sum()
 
             if np.abs(pkl_mi - pkl_mi_previous) > self.tol:
