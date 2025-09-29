@@ -28,8 +28,7 @@ class BaseNonDiagonalCoclust(BaseEstimator):
         list
             list of row indices
         """
-        row_indices = [index for index, label in enumerate(self.row_labels_)
-                       if label == i]
+        row_indices = [index for index, label in enumerate(self.row_labels_) if label == i]
         return row_indices
 
     def get_col_indices(self, i):
@@ -45,8 +44,7 @@ class BaseNonDiagonalCoclust(BaseEstimator):
         list
             list of column indices
         """
-        col_indices = [index for index, label in enumerate(self.column_labels_)
-                       if label == i]
+        col_indices = [index for index, label in enumerate(self.column_labels_) if label == i]
         return col_indices
 
     def get_shape(self, i, j):

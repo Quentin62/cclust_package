@@ -10,13 +10,13 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 
 def cooccurence_to_binary(coocurence_sparse_matrix):
-    """Convert cooccurence data to binary data. Each count higher than 0 is set
+    """Convert co-occurrence data to binary data. Each count higher than 0 is set
     to 1.
 
     Parameters
     ----------
     coocurence_sparse_matrix: :class:`scipy.sparse.csc.csc_matrix`
-        a cooccurence matrix of shape (nrow = #documents, ncol = #words)
+        a co-occurrence matrix of shape (nrow = #documents, ncol = #words)
 
     Returns
     -------
@@ -31,22 +31,20 @@ def cooccurence_to_binary(coocurence_sparse_matrix):
     tmp_array_ones = [1] * rowidx.shape[0]
 
     # Set a new scipy.sparse.csc.csc_matrix with all 0 but 1 at rowidx & colidx
-    binary_sparse_matrix = csc_matrix((tmp_array_ones,
-                                      (rowidx, colidx)),
-                                      shape=coocurence_sparse_matrix.shape)
+    binary_sparse_matrix = csc_matrix((tmp_array_ones, (rowidx, colidx)), shape=coocurence_sparse_matrix.shape)
 
     return binary_sparse_matrix
 
 
 def cooccurence_to_tfidf(coocurence_sparse_matrix):
-    """Convert cooccurence data to tfidf data.
+    """Convert co-occurrence data to tfidf data.
 
     The TF-IDF weighting scheme from scikit-learn is used.
 
     Parameters
     ----------
     coocurence_sparse_matrix: :class:`scipy.sparse.csc.csc_matrix`
-        a cooccurence matrix of shape (nrow = #documents, ncol = #words)
+        a cooccurco-occurrenceence matrix of shape (nrow = #documents, ncol = #words)
 
     Returns
     -------
@@ -54,7 +52,7 @@ def cooccurence_to_tfidf(coocurence_sparse_matrix):
         a weighted TF-IDF matrix of shape (#documents, #words)
     """
 
-    transformer = TfidfTransformer(smooth_idf=True, norm='l2')
+    transformer = TfidfTransformer(smooth_idf=True, norm="l2")
     tfidf_sparse_matrix = transformer.fit_transform(coocurence_sparse_matrix)
 
     return tfidf_sparse_matrix

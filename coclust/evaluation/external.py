@@ -8,9 +8,10 @@ such as the true labeling of the clusters.
 
 
 import numpy as np
-from sklearn.metrics import confusion_matrix
+
 # deprecated: from sklearn.utils.linear_assignment_ import linear_assignment
 from scipy.optimize import linear_sum_assignment
+from sklearn.metrics import confusion_matrix
 
 
 def accuracy(true_row_labels, predicted_row_labels):
@@ -37,9 +38,9 @@ def accuracy(true_row_labels, predicted_row_labels):
         value = cm[row][column]
         total += value
 
-    return (total * 1. / np.sum(cm))
+    return total * 1.0 / np.sum(cm)
 
 
 def _make_cost_m(cm):
     s = np.max(cm)
-    return (- cm + s)
+    return -cm + s

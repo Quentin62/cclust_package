@@ -11,23 +11,19 @@ import logging
 import os.path
 
 import numpy as np
+from scipy.io import loadmat, whosmat
 from scipy.sparse import coo_matrix
-from scipy.io import whosmat, loadmat
-
 
 logger = logging.getLogger(__name__)
 
 # module variables
-key_name_data = 'doc_term_matrix'
-key_name_term_labels = 'term_labels'
-key_name_doc_labels = 'doc_labels'
+key_name_data = "doc_term_matrix"
+key_name_term_labels = "term_labels"
+key_name_doc_labels = "doc_labels"
 
 
-def load_doc_term_data(data_filepath,
-                       term_labels_filepath=None,
-                       doc_labels_filepath=None):
-
-    """Load cooccurence data from a .[...]sv or a .mat file.
+def load_doc_term_data(data_filepath, term_labels_filepath=None, doc_labels_filepath=None):
+    """Load co-occurrence data from a .[...]sv or a .mat file.
 
     The expected formats are:
 
@@ -52,7 +48,7 @@ def load_doc_term_data(data_filepath,
         If the key ``'doc_labels'`` or ``'term_labels'`` are missing, a warning
         message is displayed.
 
-    Term and doc labels can be separatly loaded from a one column
+    Term and doc labels can be separately loaded from a one column
     .[x]sv|.txt file:
 
     - (term_labels_filepath).[x]sv|.txt:
@@ -68,11 +64,11 @@ def load_doc_term_data(data_filepath,
     Parameters
     ----------
     file_path: string
-        Path to file that contains the cooccurence data
+        Path to file that contains the co-occurrence data
 
     Returns
     -------
-    a dictionnary:
+    a dictionary:
 
         - ``'doc_term_matrix'``: :class:`scipy.sparse.csr_matrix` of shape
           (#docs, #terms)
@@ -92,27 +88,26 @@ def load_doc_term_data(data_filepath,
 
     """
 
-    # Check that file_name is a file path and correspond to an exisiting file
+    # Check that file_name is a file path and correspond to an existing file
     if not os.path.isfile(data_filepath):
-        raise ValueError("[file_name] argument (%s) is not a file path or "
-                         "file does not exist."
-                         % os.path.abspath(data_filepath))
+        raise ValueError(
+            "[file_name] argument (%s) is not a file path or " "file does not exist." % os.path.abspath(data_filepath)
+        )
 
     # Get the file extension of the data_filepath
     _, file_extension = os.path.splitext(data_filepath)
 
     doc_term_dict = {}
-    if file_extension == '.mat':
-        # Load cooccurence table from .mat file
+    if file_extension == ".mat":
+        # Load co-occurrence table from .mat file
         doc_term_dict = _load_doc_term_data_from_mat_(data_filepath)
     else:
-        # Load and format cooccurence table from .xsv file (.csv or .tsv)
+        # Load and format co-occurrence table from .xsv file (.csv or .tsv)
         doc_term_dict = _load_doc_term_data_from_xsv_(data_filepath)
 
     # If doc_term_matrix is None, raise exception
     if doc_term_dict[key_name_data] is None:
-        raise ValueError("doc_term matrix is None, check your input file "
-                         "content or field names.")
+        raise ValueError("doc_term matrix is None, check your input file " "content or field names.")
 
     # Get the number of terms and docs
     n_term = doc_term_dict[key_name_data].shape[1]
@@ -123,83 +118,79 @@ def load_doc_term_data(data_filepath,
     # --> terms
     if doc_term_dict[key_name_term_labels] is None:
         if term_labels_filepath is not None:
-            tmp_term_labels = np.loadtxt(term_labels_filepath, dtype='str')\
-                              .tolist()
+            tmp_term_labels = np.loadtxt(term_labels_filepath, dtype="str").tolist()
             if len(tmp_term_labels) != n_term:
-                raise ValueError("Number of term labels (%d) not compatible "
-                                 "with co-occurence matrix shape (%d, %d)"
-                                 % (n_term, n_doc, len(tmp_term_labels)))
+                raise ValueError(
+                    "Number of term labels (%d) not compatible "
+                    "with co-occurence matrix shape (%d, %d)" % (n_term, n_doc, len(tmp_term_labels))
+                )
             else:
                 doc_term_dict[key_name_term_labels] = tmp_term_labels
     # --> docs
     if doc_term_dict[key_name_doc_labels] is None:
         if doc_labels_filepath is not None:
-            tmp_doc_labels = np.loadtxt(doc_labels_filepath, dtype='int')\
-                             .tolist()
+            tmp_doc_labels = np.loadtxt(doc_labels_filepath, dtype="int").tolist()
             if len(tmp_doc_labels) != n_term:
-                raise ValueError("Number of doc labels (%d) not compatible "
-                                 "with the number of terms (%d)"
-                                 % (len(tmp_doc_labels), n_term))
+                raise ValueError(
+                    "Number of doc labels (%d) not compatible " "with the number of terms (%d)" % (len(tmp_doc_labels), n_term)
+                )
             doc_term_dict[key_name_doc_labels] = tmp_doc_labels
 
     if doc_term_dict[key_name_data] is None:
-        raise ValueError("Co-occurence data cannot be loaded from .mat file: "
-                         "no 'coccurrence' field found.")
+        raise ValueError("Co-occurence data cannot be loaded from .mat file: " "no 'coccurrence' field found.")
     if doc_term_dict[key_name_term_labels] is None:
-        logger.warning("Term labels cannot be loaded from .mat file. Use "
-                       "input argument 'term_labels_filepath' if term labels "
-                       "are available.")
+        logger.warning(
+            "Term labels cannot be loaded from .mat file. Use "
+            "input argument 'term_labels_filepath' if term labels "
+            "are available."
+        )
     if doc_term_dict[key_name_doc_labels] is None:
-        logger.warning("Document labels cannot be loaded  from .mat file. Use "
-                       "input argument 'doc_labels_filepath' if doc labels "
-                       "are available.")
+        logger.warning(
+            "Document labels cannot be loaded  from .mat file. Use "
+            "input argument 'doc_labels_filepath' if doc labels "
+            "are available."
+        )
 
     return doc_term_dict
 
 
 def _get_file_delimiter_(extension):
     switcher = {
-        '.csv': ',',
-        '.tsv': '\t',
+        ".csv": ",",
+        ".tsv": "\t",
     }
     return switcher.get(extension, "\t")
 
 
 def _load_doc_term_data_from_xsv_(path, extension=None):
 
-    tmp_dict = {key: None for key in [key_name_data,
-                                      key_name_term_labels,
-                                      key_name_doc_labels]}
+    tmp_dict = {key: None for key in [key_name_data, key_name_term_labels, key_name_doc_labels]}
 
     # Get the file extension if needed
     if extension is None:
         _, extension = os.path.splitext(path)
 
-    # --> get the delimeter from the extension
+    # --> get the delimiter from the extension
     file_delimiter = _get_file_delimiter_(extension)
 
     # --> build the matrix (it may take a few seconds)
     a = np.loadtxt(path, delimiter=file_delimiter, skiprows=1)
 
     # --> Set the co-occurrence data
-    tmp_dict[key_name_data] = (coo_matrix((a[:, 2],
-                                          (a[:, 0].astype(int),
-                                           a[:, 1].astype(int))))).tocsr()
+    tmp_dict[key_name_data] = (coo_matrix((a[:, 2], (a[:, 0].astype(int), a[:, 1].astype(int))))).tocsr()
 
     return tmp_dict
 
 
 def _load_doc_term_data_from_mat_(path):
 
-    tmp_dict = {key: None for key in [key_name_data,
-                                      key_name_term_labels,
-                                      key_name_doc_labels]}
+    tmp_dict = {key: None for key in [key_name_data, key_name_term_labels, key_name_doc_labels]}
 
     # Get the fields from the matlab file
     matlab_content = whosmat(path)
 
     for index, element in enumerate(matlab_content):
-        # if co-occurence data, load
+        # if co-occurrence data, load
         if element[0] == key_name_data:
             tmp_dict[key_name_data] = loadmat(path)[key_name_data]
         # if term label data, load and convert to list

@@ -14,10 +14,10 @@ modularity matrix.
 import numpy as np
 from scipy.sparse.linalg import svds
 from sklearn.cluster import KMeans
-from sklearn.utils import check_random_state, check_array
+from sklearn.utils import check_array, check_random_state
 
-from .base_diagonal_coclust import BaseDiagonalCoclust
 from ..io.input_checking import check_positive
+from .base_diagonal_coclust import BaseDiagonalCoclust
 
 
 class CoclustSpecMod(BaseDiagonalCoclust):
@@ -58,8 +58,7 @@ class CoclustSpecMod(BaseDiagonalCoclust):
     conference on Neural Information Processing - Volume Part II Pages 700-708
     """
 
-    def __init__(self, n_clusters=2, max_iter=20, tol=1e-9, n_init=1,
-                 random_state=None):
+    def __init__(self, n_clusters=2, max_iter=20, tol=1e-9, n_init=1, random_state=None):
         self.n_clusters = n_clusters
         self.max_iter = max_iter
         self.tol = tol
@@ -80,10 +79,19 @@ class CoclustSpecMod(BaseDiagonalCoclust):
         """
         random_state = check_random_state(self.random_state)
 
-        check_array(X, accept_sparse=True, dtype="numeric", order=None,
-                    copy=False, force_all_finite=True, ensure_2d=True,
-                    allow_nd=False, ensure_min_samples=self.n_clusters + 1,
-                    ensure_min_features=self.n_clusters + 1, estimator=None)
+        check_array(
+            X,
+            accept_sparse=True,
+            dtype="numeric",
+            order=None,
+            copy=False,
+            force_all_finite=True,
+            ensure_2d=True,
+            allow_nd=False,
+            ensure_min_samples=self.n_clusters + 1,
+            ensure_min_features=self.n_clusters + 1,
+            estimator=None,
+        )
 
         check_positive(X)
 
@@ -95,11 +103,11 @@ class CoclustSpecMod(BaseDiagonalCoclust):
         D_c = np.diag(np.asarray(X.sum(axis=0)).flatten())
 
         # Compute weighted X
-        with np.errstate(divide='ignore'):
-            D_r **= (-1./2)
+        with np.errstate(divide="ignore"):
+            D_r **= -1.0 / 2
             D_r[D_r == np.inf] = 0
 
-            D_c = D_c**(-1./2)
+            D_c = D_c ** (-1.0 / 2)
             D_c[D_c == np.inf] = 0
 
         D_r = np.matrix(D_r)
@@ -115,31 +123,31 @@ class CoclustSpecMod(BaseDiagonalCoclust):
         # Form matrices U-tilde and V_tilde and stack them to form Q
 
         U = D_r * U
-        # TODO:
-        # check type U  nd-array or matrix ??? Convert to  csr ?
+        # TODO: check type U  nd-array or matrix ??? Convert to  csr ?
         # D_c is D_r_initial **-1/2 while it must be D_r**1/2
 
         norm = np.linalg.norm(U, axis=0)
-        U_tilde = U/norm
+        U_tilde = U / norm
 
         V = D_c * V
-        # TODO:
-        # chack type U  nd-array or matrix ??? Convert to csr ?
+        # TODO: check type U  nd-array or matrix ??? Convert to csr ?
         # D_c is D_r_initial **-1/2 while it must be D_r**1/2
 
         norm = np.linalg.norm(V, axis=0)
-        V_tilde = V/norm
+        V_tilde = V / norm
 
         Q = np.concatenate((U_tilde, V_tilde), axis=0)
 
         # kmeans
 
-        k_means = KMeans(init='k-means++',
-                         n_clusters=self.n_clusters,
-                         n_init=self.n_init,
-                         max_iter=self.max_iter,
-                         tol=self.tol,
-                         random_state=random_state)
+        k_means = KMeans(
+            init="k-means++",
+            n_clusters=self.n_clusters,
+            n_init=self.n_init,
+            max_iter=self.max_iter,
+            tol=self.tol,
+            random_state=random_state,
+        )
         k_means.fit(Q)
         k_means_labels = k_means.labels_
 

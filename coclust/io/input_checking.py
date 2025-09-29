@@ -7,9 +7,9 @@ input matrices.
 
 import numpy as np
 import scipy.sparse as sp
-from scipy.sparse.sputils import isdense
 from scipy.sparse.dok import dok_matrix
 from scipy.sparse.lil import lil_matrix
+from scipy.sparse.sputils import isdense
 
 
 def check_array(a, pos=True):
@@ -37,8 +37,7 @@ def check_array(a, pos=True):
     if not (type(a) == np.ndarray or type(a) == np.matrix or sp.issparse(a)):
         raise TypeError("Input data must be a Numpy/SciPy array or matrix")
 
-    if (not np.issubdtype(a.dtype.type, np.integer) and
-            not np.issubdtype(a.dtype.type, np.floating)):
+    if not np.issubdtype(a.dtype.type, np.integer) and not np.issubdtype(a.dtype.type, np.floating):
         raise TypeError("Input array or matrix must be of a numeric type")
 
     if not sp.issparse(a):

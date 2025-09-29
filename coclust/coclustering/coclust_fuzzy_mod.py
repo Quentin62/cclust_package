@@ -12,11 +12,11 @@ modularity matrix.
 # License: BSD 3 clause
 
 import numpy as np
-from sklearn.utils import check_random_state, check_array
+from sklearn.utils import check_array, check_random_state
 
-from .base_diagonal_coclust import BaseDiagonalCoclust
-from ..io.input_checking import check_positive
 from ..initialization import random_init_fuzzy_parameters
+from ..io.input_checking import check_positive
+from .base_diagonal_coclust import BaseDiagonalCoclust
 
 
 class CoclustFuzzyMod(BaseDiagonalCoclust):
@@ -54,18 +54,17 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
     References
     ----------
     * Yongli L., Jingli C., Hao C., A Fuzzy Co-Clustering Algorithm via Modularity Maximization.
-    Journal: Mathematical Problems in Engineering - Year: 2018 - Pages 1-11. 
+    Journal: Mathematical Problems in Engineering - Year: 2018 - Pages 1-11.
     """
 
-    def __init__(self, n_clusters=2, Tu = 1, Tv = 1, init=None, max_iter=20, n_init=1,
-                 tol=1e-9, random_state=None):
+    def __init__(self, n_clusters=2, Tu=1, Tv=1, init=None, max_iter=20, n_init=1, tol=1e-9, random_state=None):
         self.n_clusters = n_clusters
         self.init = init
         self.max_iter = max_iter
         self.n_init = n_init
         self.tol = tol
         self.random_state = random_state
-        self.Tu = Tu 
+        self.Tu = Tu
         self.Tv = Tv
 
         self.row_labels_ = None
@@ -86,11 +85,20 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
 
         random_state = check_random_state(self.random_state)
 
-        check_array(X, accept_sparse=True, dtype="numeric", order=None,
-                    copy=False, force_all_finite=True, ensure_2d=True,
-                    allow_nd=False, ensure_min_samples=self.n_clusters,
-                    ensure_min_features=self.n_clusters, estimator=None)
-        
+        check_array(
+            X,
+            accept_sparse=True,
+            dtype="numeric",
+            order=None,
+            copy=False,
+            force_all_finite=True,
+            ensure_2d=True,
+            allow_nd=False,
+            ensure_min_samples=self.n_clusters,
+            ensure_min_features=self.n_clusters,
+            estimator=None,
+        )
+
         if type(X) == np.ndarray:
             X = np.matrix(X)
 
@@ -109,7 +117,7 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
             if np.isnan(self.objective):
                 raise ValueError("matrix may contain unexpected NaN values")
             # remember attributes corresponding to the best value of the objective function
-            if (self.objective > objective):
+            if self.objective > objective:
                 modularity = self.modularity
                 objective = self.objective
                 modularities = self.modularities
@@ -137,7 +145,7 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
         """
 
         # randomized initialization of U and V
-        U, V = random_init_fuzzy_parameters(self.n_clusters, X.shape[0], X.shape[1], seed) 
+        U, V = random_init_fuzzy_parameters(self.n_clusters, X.shape[0], X.shape[1], seed)
 
         # Compute the modularity matrix
         row_sums = np.matrix(X.sum(axis=1))
@@ -149,7 +157,7 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
         B = X - indep
 
         self.modularities = []
-        self.objectives = [] 
+        self.objectives = []
 
         # Loop
         obj_begin = float("-inf")
@@ -159,31 +167,30 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
             change = False
 
             # Reassign rows
-            BV=np.dot(B,V)
-            U=np.exp(BV/self.Tu)
-            U/=U.sum(axis=1)
+            BV = np.dot(B, V)
+            U = np.exp(BV / self.Tu)
+            U /= U.sum(axis=1)
 
             # Reassign columns
-            BtU=np.dot((B.T),U)
-            V=np.exp(BtU/self.Tv)
-            V/=V.sum(axis=1)
+            BtU = np.dot((B.T), U)
+            V = np.exp(BtU / self.Tv)
+            V /= V.sum(axis=1)
 
-            # Modularity 
+            # Modularity
             Q = np.trace((U.T).dot(BV)) / N
 
-            # Entropy 
-            entropy_u = self.Tu * np.trace(np.dot(U.T, np.log(U))) 
-            entropy_v = self.Tv * np.trace(np.dot(V.T, np.log(V))) 
+            # Entropy
+            entropy_u = self.Tu * np.trace(np.dot(U.T, np.log(U)))
+            entropy_v = self.Tv * np.trace(np.dot(V.T, np.log(V)))
 
-            # Objective function 
+            # Objective function
             obj_end = Q - entropy_u - entropy_v
-            iteration += 1 
-            
-            if (np.abs(obj_end - obj_begin) > self.tol and
-                    iteration < self.max_iter):
+            iteration += 1
+
+            if np.abs(obj_end - obj_begin) > self.tol and iteration < self.max_iter:
                 self.modularities.append(Q)
                 self.objectives.append(obj_end)
-                obj_begin = obj_end 
+                obj_begin = obj_end
                 change = True
 
         self.row_labels_ = list(np.argmax(U, axis=1).flat)
@@ -195,7 +202,7 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
         self.nb_iterations = iteration
         self.U = U
         self.V = V
-        
+
     def get_assignment_matrix(self, kind, i):
         """Returns the indices of 'best' i cols of an assignment matrix
         (row or column).
@@ -214,8 +221,7 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
 
         if kind == "rows":
             s_BV = np.argsort(self.BV)
-            return s_BV[:, -1:-(i+1):-1]
+            return s_BV[:, -1 : -(i + 1) : -1]
         if kind == "cols":
             s_BtU = np.argsort(self.BtU)
-            return s_BtU[:, -1:-(i+1):-1]
-        
+            return s_BtU[:, -1 : -(i + 1) : -1]

@@ -42,17 +42,16 @@ def best_modularity_partition(in_data, nbr_clusters_range, n_rand_init=1):
     for tmp_n_clusters in nbr_clusters_range:
         print(" %d ..." % (tmp_n_clusters))
         # Create and fit a model with tmp_n_clusters co-clusters
-        tmp_model = CoclustMod(n_clusters=tmp_n_clusters, n_init=n_rand_init,
-                               random_state=0)
+        tmp_model = CoclustMod(n_clusters=tmp_n_clusters, n_init=n_rand_init, random_state=0)
         tmp_model.fit(in_data)
 
         modularity_end = tmp_model.modularity
         # Check if the final modularity is better with tolerance
-        if((modularity_end - modularity_begin) > eps_best_model):
+        if (modularity_end - modularity_begin) > eps_best_model:
             tmp_best_model = tmp_model
             modularity_begin = modularity_end
 
-        tmp_max_modularities[(tmp_n_clusters)-min(nbr_clusters_range)] = tmp_model.modularity
+        tmp_max_modularities[(tmp_n_clusters) - min(nbr_clusters_range)] = tmp_model.modularity
 
     print(" All done !")
     return (tmp_best_model, tmp_max_modularities)

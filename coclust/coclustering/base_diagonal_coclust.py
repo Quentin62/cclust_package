@@ -28,10 +28,8 @@ class BaseDiagonalCoclust(BaseEstimator):
         (list, list)
             (row indices, column indices)
         """
-        row_indices = [index for index, label in enumerate(self.row_labels_)
-                       if label == i]
-        column_indices = [index for index, label
-                          in enumerate(self.column_labels_) if label == i]
+        row_indices = [index for index, label in enumerate(self.row_labels_) if label == i]
+        column_indices = [index for index, label in enumerate(self.column_labels_) if label == i]
         return (row_indices, column_indices)
 
     def get_shape(self, i):
@@ -50,7 +48,7 @@ class BaseDiagonalCoclust(BaseEstimator):
         row_indices, column_indices = self.get_indices(i)
         return (len(row_indices), len(column_indices))
 
-    def get_submatrix(self, m,  i):
+    def get_submatrix(self, m, i):
         """Give the submatrix corresponding to co-cluster i.
 
         Parameters

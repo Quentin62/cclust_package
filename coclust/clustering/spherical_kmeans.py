@@ -13,13 +13,12 @@ spherical k-means algorithm.
 
 import numpy as np
 import scipy.sparse as sp
-from sklearn.utils import check_random_state
-from sklearn.preprocessing import normalize
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.preprocessing import normalize
+from sklearn.utils import check_random_state
 
-from ..io.input_checking import (check_numbers_clustering,
-                                 check_array)
-from ..initialization import (random_init_clustering)
+from ..initialization import random_init_clustering
+from ..io.input_checking import check_array, check_numbers_clustering
 
 
 class SphericalKmeans:
@@ -57,8 +56,7 @@ class SphericalKmeans:
         sequence of criterion values during the best run
     """
 
-    def __init__(self, n_clusters=2, init=None, max_iter=20, n_init=1,
-                 tol=1e-9, random_state=None, weighting=True):
+    def __init__(self, n_clusters=2, init=None, max_iter=20, n_init=1, tol=1e-9, random_state=None, weighting=True):
         self.n_clusters = n_clusters
         self.init = init
         self.max_iter = max_iter
@@ -88,16 +86,16 @@ class SphericalKmeans:
         criterion = self.criterion
 
         if self.weighting:
-            transformer = TfidfTransformer(norm='l2', smooth_idf=True)
+            transformer = TfidfTransformer(norm="l2", smooth_idf=True)
             X = transformer.fit_transform(X)
 
         X = X.todense()
         X = np.array(X)
         X = sp.lil_matrix(X)
-        #X = sp.csr_matrix(X)
+        # X = sp.csr_matrix(X)
         X = normalize(X)
 
-        #X = X.astype(float)
+        # X = X.astype(float)
 
         random_state = check_random_state(self.random_state)
         seeds = random_state.randint(np.iinfo(np.int32).max, size=self.n_init)
@@ -106,7 +104,7 @@ class SphericalKmeans:
             self.random_state = seed
             self._fit_single(X)
             # remember attributes corresponding to the best criterion
-            if (self.criterion > criterion):
+            if self.criterion > criterion:
                 criterion = self.criterion
                 criterions = self.criterions
                 labels_ = self.labels_
@@ -152,13 +150,13 @@ class SphericalKmeans:
             change = False
 
             # compute centroids (in fact only summation along cols)
-            centers = Z.T*X  # centers = sparse matrix
+            centers = Z.T * X  # centers = sparse matrix
 
             # normalize centroids
             centers = normalize(centers)
 
             # hard assignment
-            #Z=centers*X.T
+            # Z=centers*X.T
             Z1 = X * centers.T
             Z1 = Z1.todense()
             Z1 = np.array(Z1)

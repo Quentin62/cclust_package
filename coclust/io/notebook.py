@@ -24,10 +24,10 @@ def input_with_default_int(prompt, prefill):
     """
     try:
         # Python 2
-        value = raw_input('%s: [default: %s] ' % (prompt, prefill))
+        value = raw_input("%s: [default: %s] " % (prompt, prefill))
     except NameError:
         # Python 3
-        value = input('%s: [default: %s] ' % (prompt, prefill))
+        value = input("%s: [default: %s] " % (prompt, prefill))
 
     # value is a string
     if len(value) == 0:
@@ -54,10 +54,10 @@ def input_with_default_str(prompt, prefill):
     """
     try:
         # Python 2
-        value = raw_input('%s: [default: %s] ' % (prompt, prefill))
+        value = raw_input("%s: [default: %s] " % (prompt, prefill))
     except NameError:
         # Python 3
-        value = input('%s: [default: %s] ' % (prompt, prefill))
+        value = input("%s: [default: %s] " % (prompt, prefill))
 
     # value is a string
     if len(value) == 0:

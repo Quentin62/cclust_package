@@ -11,73 +11,72 @@ of a co-clustering algorithm by direct maximization of graph modularity.
 # License: BSD 3 clause
 
 import numpy as np
-from sklearn.utils import check_random_state, check_array
 from joblib import Parallel, delayed, effective_n_jobs
+from sklearn.utils import check_array, check_random_state
 
 from ..initialization import random_init
 from .base_diagonal_coclust import BaseDiagonalCoclust
 
 
 def _fit_single(X, n_clusters, random_state, init, max_iter, tol, y=None):
-        """Perform one run of co-clustering by direct maximization of graph
-        modularity.
+    """Perform one run of co-clustering by direct maximization of graph
+    modularity.
 
-        Parameters
-        ----------
-        X : numpy array or scipy sparse matrix, shape=(n_samples, n_features)
-            Matrix to be analyzed
-        """
-        if init is None:
-            W = random_init(n_clusters, X.shape[1], random_state)
-        else:
-            W = np.matrix(init, dtype=float)
+    Parameters
+    ----------
+    X : numpy array or scipy sparse matrix, shape=(n_samples, n_features)
+        Matrix to be analyzed
+    """
+    if init is None:
+        W = random_init(n_clusters, X.shape[1], random_state)
+    else:
+        W = np.matrix(init, dtype=float)
 
-        Z = np.zeros((X.shape[0], n_clusters))
+    Z = np.zeros((X.shape[0], n_clusters))
 
-        # Compute the modularity matrix
-        row_sums = np.matrix(X.sum(axis=1))
-        col_sums = np.matrix(X.sum(axis=0))
-        N = float(X.sum())
-        indep = (row_sums.dot(col_sums)) / N
+    # Compute the modularity matrix
+    row_sums = np.matrix(X.sum(axis=1))
+    col_sums = np.matrix(X.sum(axis=0))
+    N = float(X.sum())
+    indep = (row_sums.dot(col_sums)) / N
 
-        # B is a numpy matrix
-        B = X - indep
+    # B is a numpy matrix
+    B = X - indep
 
-        modularities = []
+    modularities = []
 
-        # Loop
-        m_begin = float("-inf")
-        change = True
-        iteration = 0
-        while change:
-            change = False
+    # Loop
+    m_begin = float("-inf")
+    change = True
+    iteration = 0
+    while change:
+        change = False
 
-            # Reassign rows
-            BW = B.dot(W)
-            for idx, k in enumerate(np.argmax(BW, axis=1)):
-                Z[idx, :] = 0
-                Z[idx, k] = 1
+        # Reassign rows
+        BW = B.dot(W)
+        for idx, k in enumerate(np.argmax(BW, axis=1)):
+            Z[idx, :] = 0
+            Z[idx, k] = 1
 
-            # Reassign columns
-            BtZ = (B.T).dot(Z)
-            for idx, k in enumerate(np.argmax(BtZ, axis=1)):
-                W[idx, :] = 0
-                W[idx, k] = 1
+        # Reassign columns
+        BtZ = (B.T).dot(Z)
+        for idx, k in enumerate(np.argmax(BtZ, axis=1)):
+            W[idx, :] = 0
+            W[idx, k] = 1
 
-            k_times_k = (Z.T).dot(BW)
-            m_end = np.trace(k_times_k)
-            iteration += 1
-            if (np.abs(m_end - m_begin) > tol and
-                    iteration < max_iter):
-                modularities.append(m_end/N)
-                m_begin = m_end
-                change = True
+        k_times_k = (Z.T).dot(BW)
+        m_end = np.trace(k_times_k)
+        iteration += 1
+        if np.abs(m_end - m_begin) > tol and iteration < max_iter:
+            modularities.append(m_end / N)
+            m_begin = m_end
+            change = True
 
-        row_labels_ = np.argmax(Z, axis=1).tolist()
-        column_labels_ = np.argmax(W, axis=1).tolist()
-        modularity = m_end / N
-        nb_iterations = iteration
-        return row_labels_,  column_labels_, modularity, modularities, nb_iterations
+    row_labels_ = np.argmax(Z, axis=1).tolist()
+    column_labels_ = np.argmax(W, axis=1).tolist()
+    modularity = m_end / N
+    nb_iterations = iteration
+    return row_labels_, column_labels_, modularity, modularities, nb_iterations
 
 
 class CoclustMod(BaseDiagonalCoclust):
@@ -128,8 +127,7 @@ class CoclustMod(BaseDiagonalCoclust):
     Direct Maximization of Graph Modularity. CIKM 2015: 1807-1810
     """
 
-    def __init__(self, n_clusters=2, init=None, max_iter=20, n_init=1,
-                 tol=1e-9, random_state=None, n_jobs=1):
+    def __init__(self, n_clusters=2, init=None, max_iter=20, n_init=1, tol=1e-9, random_state=None, n_jobs=1):
         self.n_clusters = n_clusters
         self.init = init
         self.max_iter = max_iter
@@ -143,8 +141,6 @@ class CoclustMod(BaseDiagonalCoclust):
         self.modularity = -np.inf
         self.modularities = []
 
-
-
     def fit(self, X, y=None):
         """Perform co-clustering by direct maximization of graph modularity.
 
@@ -156,10 +152,19 @@ class CoclustMod(BaseDiagonalCoclust):
 
         random_state = check_random_state(self.random_state)
 
-        check_array(X, accept_sparse=True, dtype="numeric", order=None,
-                    copy=False, force_all_finite=True, ensure_2d=True,
-                    allow_nd=False, ensure_min_samples=self.n_clusters,
-                    ensure_min_features=self.n_clusters, estimator=None)
+        check_array(
+            X,
+            accept_sparse=True,
+            dtype="numeric",
+            order=None,
+            copy=False,
+            force_all_finite=True,
+            ensure_2d=True,
+            allow_nd=False,
+            ensure_min_samples=self.n_clusters,
+            ensure_min_features=self.n_clusters,
+            estimator=None,
+        )
 
         if type(X) == np.ndarray:
             X = np.matrix(X)
@@ -172,29 +177,31 @@ class CoclustMod(BaseDiagonalCoclust):
         column_labels = None
         seeds = random_state.randint(np.iinfo(np.int32).max, size=self.n_init)
         if effective_n_jobs(self.n_jobs) == 1:
-         for seed in seeds:
-            new_row_labels,  new_column_labels, new_modularity, new_modularities, new_nb_iterations = _fit_single(X, self.n_clusters, seed, self.init, self.max_iter, self.tol, y)
-            if np.isnan(new_modularity):
-                raise ValueError("matrix may contain unexpected NaN values")
-            # remember attributes corresponding to the best modularity
-            if (new_modularity > modularity):
-                modularity = new_modularity
-                modularities = new_modularities
-                row_labels = new_row_labels
-                column_labels = new_column_labels
+            for seed in seeds:
+                new_row_labels, new_column_labels, new_modularity, new_modularities, new_nb_iterations = _fit_single(
+                    X, self.n_clusters, seed, self.init, self.max_iter, self.tol, y
+                )
+                if np.isnan(new_modularity):
+                    raise ValueError("matrix may contain unexpected NaN values")
+                # remember attributes corresponding to the best modularity
+                if new_modularity > modularity:
+                    modularity = new_modularity
+                    modularities = new_modularities
+                    row_labels = new_row_labels
+                    column_labels = new_column_labels
         else:
-         results = Parallel(n_jobs=self.n_jobs, verbose=0)(
-            delayed(_fit_single)(X, self.n_clusters, seed, self.init, self.max_iter, self.tol, y)
-            for seed in seeds)
-         list_of_row_labels,  list_of_column_labels, list_of_modularity, list_of_modularities, list_of_nb_iterations = zip(*results)
-         best = np.argmax(list_of_modularity)
-         row_labels = list_of_row_labels[best]
-         column_labels = list_of_column_labels[best]
-         modularity = list_of_modularity[best]
-         modularities = list_of_modularities[best]
-         n_iter = list_of_nb_iterations[best]
-
-         
+            results = Parallel(n_jobs=self.n_jobs, verbose=0)(
+                delayed(_fit_single)(X, self.n_clusters, seed, self.init, self.max_iter, self.tol, y) for seed in seeds
+            )
+            list_of_row_labels, list_of_column_labels, list_of_modularity, list_of_modularities, list_of_nb_iterations = zip(
+                *results
+            )
+            best = np.argmax(list_of_modularity)
+            row_labels = list_of_row_labels[best]
+            column_labels = list_of_column_labels[best]
+            modularity = list_of_modularity[best]
+            modularities = list_of_modularities[best]
+            n_iter = list_of_nb_iterations[best]
 
         # update instance variables
         self.modularity = modularity
