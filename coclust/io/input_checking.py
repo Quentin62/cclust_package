@@ -34,7 +34,7 @@ def check_array(a, pos=True):
         negative values (if ``pos`` is ``True``).
     """
 
-    if not (type(a) == np.ndarray or type(a) == np.matrix or sp.issparse(a)):
+    if not (isinstance(a, np.ndarray) or isinstance(a, np.matrix) or sp.issparse(a)):
         raise TypeError("Input data must be a Numpy/SciPy array or matrix")
 
     if not np.issubdtype(a.dtype.type, np.integer) and not np.issubdtype(a.dtype.type, np.floating):

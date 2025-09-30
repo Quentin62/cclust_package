@@ -99,7 +99,7 @@ class CoclustFuzzyMod(BaseDiagonalCoclust):
             estimator=None,
         )
 
-        if type(X) == np.ndarray:
+        if isinstance(X, np.ndarray):
             X = np.matrix(X)
 
         X = X.astype(float)
