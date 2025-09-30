@@ -187,6 +187,7 @@ def plot_cluster_top_terms(in_data, all_terms, nb_top_terms, model, do_plot=True
                                best_coclustMod_model)
 
     """
+    in_data = np.matrix(in_data)
 
     if all_terms is None:
         logger.warning(

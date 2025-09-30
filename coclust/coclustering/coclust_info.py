@@ -89,7 +89,7 @@ class CoclustInfo(BaseNonDiagonalCoclust):
         """
         random_state = check_random_state(self.random_state)
 
-        check_array(
+        X = check_array(
             X,
             accept_sparse=True,
             dtype="numeric",
